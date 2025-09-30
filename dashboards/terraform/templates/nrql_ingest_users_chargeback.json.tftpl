@@ -1,0 +1,338 @@
+{
+  "name": "Ingest/Users/Breakdown Overview",
+  "description": null,
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "Ingest",
+      "description": null,
+      "widgets": [
+        {
+          "title": "Ingest per Account (GB)",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 4,
+            "height": 6
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.pie"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": true
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${ACCOUNTID}
+                ],
+                "query": "SELECT sum(${METRIC_NAME}) / 1e9 FROM Metric where metricName = '${METRIC_NAME}' facet account since 1 day ago until now limit max"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Ingest per eventType",
+          "layout": {
+            "column": 5,
+            "row": 1,
+            "width": 4,
+            "height": 6
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${ACCOUNTID}
+                ],
+                "query": "SELECT sum(${METRIC_NAME})/1e9 as 'Ingest (GB)' FROM Metric where metricName = '${METRIC_NAME}' facet table since 1 day ago LIMIT MAX"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Ingest per ${COST_FACET}",
+          "layout": {
+            "column": 9,
+            "row": 1,
+            "width": 4,
+            "height": 6
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${ACCOUNTID}
+                ],
+                "query": "SELECT sum(${METRIC_NAME}) / 1e9 as 'Ingest (GB)' FROM Metric where metricName = '${METRIC_NAME}' facet `${COST_FACET}` since 1 day ago LIMIT MAX"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "Ingest Trend",
+          "layout": {
+            "column": 1,
+            "row": 7,
+            "width": 12,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.line"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${ACCOUNTID}
+                ],
+                "query": "SELECT sum(${METRIC_NAME}) / 1e9 as 'Ingest (GB)' FROM Metric where metricName = '${METRIC_NAME}' since 1 day ago TIMESERIES LIMIT MAX"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "yAxisLeft": {
+              "zero": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": null,
+      "widgets": [
+        {
+          "title": "User Type Breakdown",
+          "layout": {
+            "column": 1,
+            "row": 1,
+            "width": 4,
+            "height": 4
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${ACCOUNTID}
+                ],
+                "query": "FROM NrUsers SELECT uniqueCount(email) facet billableType since this month until now compare with 1 week ago"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "User Breakdown per Account",
+          "layout": {
+            "column": 5,
+            "row": 1,
+            "width": 8,
+            "height": 4
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${ACCOUNTID}
+                ],
+                "query": "FROM NrUsers SELECT filter(uniqueCount(email), where billableType = 'Full platform') as 'Full', filter(uniqueCount(email), where billableType = 'Basic') as 'Basic' facet acctId, accountName since this month until now limit max"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "User Details",
+          "layout": {
+            "column": 1,
+            "row": 5,
+            "width": 12,
+            "height": 5
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${ACCOUNTID}
+                ],
+                "query": "FROM NrUsers SELECT latest(billableType) facet email, acctId, accountName since this month UNTIL now limit max"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Untagged breakdown",
+      "description": null,
+      "widgets": [
+        %{~ for index, api in CONFIG  ~}
+        %{ if index!=0 },
+        %{ endif }
+        {
+          "title": "${api.facet[0]}:${api.facet[1]}:${api.facet[2]}",
+          "layout": {
+            "column": 1,
+            "row": ${(index * 5) + 1},
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.pie"
+          },
+          "rawConfiguration": {
+            "colors": {
+              "seriesOverrides": [
+                {
+                  "color": "#ff7d78",
+                  "seriesName": "No ${COST_FACET}"
+                },
+                {
+                  "color": "#72fa78",
+                  "seriesName": "${COST_FACET}"
+                }
+              ]
+            },
+            "facet": {
+              "showOtherSeries": true
+            },
+            "legend": {
+              "enabled": true
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${api.facet[1]}
+                ],
+                "query": "SELECT bytecountestimate()/1e9 AS 'Total Ingest (GB)'\nFROM ${api.facet[2]}\nFACET CASES(\n  WHERE (`tags.${COST_FACET}` IS NOT NULL) OR (`${COST_FACET}` IS NOT NULL) OR (`label.${COST_FACET}` IS NOT NULL) OR (`tag_${replace(COST_FACET, ".", "_")}` IS NOT NULL) AS '${COST_FACET}',\n  WHERE (`tags.${COST_FACET}` IS NULL) AND (`${COST_FACET}` IS NULL) AND (`label.${COST_FACET}` IS NULL) AND (`tag_${replace(COST_FACET, ".", "_")}` IS NULL) AS 'No ${COST_FACET}'\n)\nSINCE 24 hours ago UNTIL now"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        },
+        {
+          "title": "${api.facet[0]}:${api.facet[1]}:${api.facet[2]} Unallocated Entities",
+          "layout": {
+            "column": 7,
+            "row": ${(index * 5) + 1},
+            "width": 6,
+            "height": 3
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${api.facet[1]}
+                ],
+                "query": "SELECT bytecountestimate()/1e9 AS 'Ingest (GB)'\nFROM ${api.facet[2]}\nWHERE (`tags.${COST_FACET}` IS NULL) AND (`${COST_FACET}` IS NULL) AND (`label.${COST_FACET}` IS NULL) AND (`tag_${replace(COST_FACET, ".", "_")}` IS NULL)\nFACET if (entity.name IS NOT NULL, entity.name, if(appName IS NOT NULL, appName)) AS 'entity name' \nSINCE 24 hours ago UNTIL now\nLIMIT MAX"
+              }
+            ]
+          }
+        },
+        {
+          "title": "${api.facet[0]}:${api.facet[1]}:${api.facet[2]}",
+          "layout": {
+            "column": 1,
+            "row": ${(index * 5) + 4},
+            "width": 12,
+            "height": 2
+          },
+          "linkedEntityGuids": null,
+          "visualization": {
+            "id": "viz.table"
+          },
+          "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  ${api.facet[1]}
+                ],
+                "query": "SELECT bytecountestimate()/1e9,\nfilter(bytecountestimate()/1e9, WHERE (`tags.${COST_FACET}` IS NOT NULL) OR (`${COST_FACET}` IS NOT NULL) OR (`label.${COST_FACET}` IS NOT NULL) OR (`tag_${replace(COST_FACET, ".", "_")}` IS NOT NULL)) AS '${COST_FACET} (GB)',\nfilter (bytecountestimate()/1e9, WHERE (`tags.${COST_FACET}` IS NULL) AND (`${COST_FACET}` IS NULL) AND (`label.${COST_FACET}` IS NULL) AND (`tag_${replace(COST_FACET, ".", "_")}` IS NULL) AS 'No ${COST_FACET} (GB)'),\nfilter(bytecountestimate()/1e9, WHERE (`tags.${COST_FACET}` IS NOT NULL)) AS 'tags.${COST_FACET}', \nfilter(bytecountestimate()/1e9, WHERE (`${COST_FACET}` IS NOT NULL)) AS '${COST_FACET}',\nfilter(bytecountestimate()/1e9, WHERE (`label.${COST_FACET}` IS NOT NULL)) AS 'label.${COST_FACET}',\nfilter(bytecountestimate()/1e9, WHERE (`tag_${replace(COST_FACET, ".", "_")}` IS NOT NULL)) AS 'tag_${replace(COST_FACET, ".", "_")}'\nFROM ${api.facet[2]} SINCE 24 hours ago UNTIL now"
+              }
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
+          }
+        }
+        %{ endfor ~}
+      ]
+    }
+  ],
+  "variables": []
+}

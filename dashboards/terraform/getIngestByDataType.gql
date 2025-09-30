@@ -1,0 +1,9 @@
+query ($accountId: Int!) {
+  actor {
+    account(id: $accountId) {
+      nrql(query: "SELECT sum(${metric_name})/1e9 as 'Ingest (GB)' FROM Metric where metricName = '${metric_name}' facet account, id, table since 1 day ago LIMIT 30") {
+        results
+      }
+    }
+  }
+}

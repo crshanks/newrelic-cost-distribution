@@ -1,0 +1,26 @@
+# Terraform Variables Configuration
+# Copy this file to terraform.tfvars and update with your values
+
+# Your New Relic account ID
+accountId = "1234567"
+
+# Your New Relic API key
+NEW_RELIC_API_KEY = "your-api-key-here"
+
+# The metric name used by your cost distribution script
+# Should match the METRIC_NAME variable in your script
+# Common values:
+# - "ingest" (generic/default)
+# - "ingest.costcenter" (with cost center identifier)
+# - "cost_distribution" (alternative naming)
+# - "custom_metric" (user-defined names)
+metric_name = "ingest"
+
+# The facet attribute used for cost distribution
+# Should match the FACET variable in your script (currently 'costcenter')
+# Common values:
+# - "costcenter" (default)
+# - "NewRelicCostAllocation" (standard allocation)
+# - "Cost Center" (custom attribute)
+# - "service.namespace" (service-based)
+cost_facet = "costcenter"

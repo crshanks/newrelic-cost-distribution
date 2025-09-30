@@ -1,0 +1,35 @@
+{
+  "name": "newrelic-cost-distribution",
+  "version": "1.0.0",
+  "description": "New Relic cost distribution monitoring with consolidated improvements from customer-specific implementations",
+  "main": "cost-distribution-synthetics-api-script.js",
+  "scripts": {
+    "simulate": "node cost-distribution-synthetics-api-script.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "newrelic",
+    "cost-distribution",
+    "ingest",
+    "monitoring",
+    "synthetics"
+  ],
+  "author": "Craig Shanks",
+  "license": "MIT",
+  "dependencies": {
+    "got": "^11.8.6"
+  },
+  "engines": {
+    "node": ">=16.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/newrelic-cost-distribution.git"
+  },
+  "files": [
+    "dashboards/",
+    "cost-distribution-synthetics-api-script.js",
+    "example-a-synthetics-script.js",
+    "README.md"
+  ]
+}
