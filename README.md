@@ -1,14 +1,55 @@
-# New Relic Cost Distribution - Consolidated Approach
+# New Relic Cost Distribution - Enhanced Team Allocation
 
-This repository provides a consolidated approach to New Relic ingest cost distribution monitoring, incorporating improvements from multiple customer-specific implementations.
+This repository provides an enhanced approach to New Relic ingest cost distribution monitoring with advanced team allocation capabilities, incorporating configuration-based mappings for complex organizational structures.
+
+## Recent Updates 🚀
+
+**Latest Enhancements (October 2025):**
+- ✅ **Advanced Team Mapping**: Intelligent team assignment with data type mapping, lambda function patterns, and fallback strategies
+- ✅ **Rate Limiting Fixes**: Resolved infinite loop issues with improved concurrent request handling (20 concurrent max)
+- ✅ **Enhanced Debugging**: Comprehensive NRQL result structure analysis and metric extraction debugging
+- ✅ **Configuration-Driven Approach**: All team mappings configurable for maximum reusability across organizations
+- ✅ **Dynamic Terraform Integration**: Dashboards automatically sync with script facet configuration
+
+## Key Features ✨
+
+### 🏷️ **Smart Team Assignment**
+- **Data Type Mapping**: Automatically assigns data types to teams (e.g., Mobile → mobile-team, Infrastructure/APM/Browser → platform-team)
+- **Lambda Function Patterns**: Maps AWS Lambda functions to teams via configurable name patterns  
+- **Primary Facet Strategy**: Uses configurable facet (e.g., `tags.Team`, `costcenter`) as primary identification with intelligent fallbacks
+- **Custom Event Handling**: Special logic for custom events without standard tags using lambda function name patterns
+
+### 🔧 **Enhanced Configuration System**
+```javascript
+// Data type to team mapping
+const DATA_TYPE_TEAM_MAPPING = {
+  'MobileSession': 'mobile-team',
+  'MobileCrash': 'mobile-team',
+  'SystemSample': 'platform-team',
+  'Transaction': 'platform-team',
+  // ... configurable for any organization
+};
+
+// Lambda function name patterns
+const LAMBDA_TEAM_MAPPING = {
+  'team-alpha-*': 'team-alpha',
+  'analytics-*': 'data-team',
+  '*-mobile-*': 'mobile-team'
+};
+```
+
+### 🚀 **Performance & Reliability**
+- **Optimized Rate Limiting**: Intelligent concurrent request management with automatic cleanup
+- **Enhanced Error Recovery**: Improved error handling with proper request lifecycle management
+- **Comprehensive Debugging**: Detailed logging for troubleshooting data extraction and team assignment
+- **Timeout Protection**: Prevents infinite loops and stuck requests with automatic cleanup
 
 ## Project Structure
 
 ```
 newrelic-cost-distribution/
 ├── README.md                           # This file
-├── MIGRATION.md                        # Migration guide from individual scripts
-├── PRIVATE-CONFIG.md                   # Private configuration management guide
+├── CONFIGURATION.md                    # Detailed configuration guide
 ├── cost-distribution-synthetics-api-script.js   # Main single-file script for Synthetics
 ├── example-a-synthetics-script.js      # Example with geographic patterns
 └── dashboards/                        # Dashboard configurations
@@ -24,29 +65,35 @@ newrelic-cost-distribution/
 
 ## Key Improvements Consolidated
 
-### 1. Environment Detection & Local Development Support
-- Automatic detection of local vs. Synthetics environment
-- Local development simulator integration
-- Configurable debug logging
+### 1. Enhanced Team Allocation Logic
+- **Data Type to Team Mapping**: Automatic assignment of specific data types to teams
+- **Lambda Function Name Patterns**: Configurable patterns for AWS Lambda team identification
+- **Smart Fallback Strategies**: Intelligent attribute selection based on data type context
+- **Custom Event Handling**: Special logic for events without standard tags
 
-### 2. Enhanced Cost Center Pattern Matching
-- Regex-based pattern matching for entity names
-- Customer-specific cost center assignment rules
-- Fallback to entity.name and appName when primary facet unavailable
+### 2. Performance & Reliability Enhancements
+- **Improved Rate Limiting**: Fixed infinite loop issues with timestamp-based request tracking
+- **Automatic Request Cleanup**: Removes stuck requests older than 30 seconds
+- **Timeout Protection**: Forces cleanup if waiting too long (5+ seconds)
+- **Enhanced Error Handling**: Comprehensive error recovery in all request scenarios
 
-### 3. Regional API Support
-- Dynamic US/EU endpoint selection
-- Proper regional API routing
+### 3. Advanced Configuration Management
+- **Team Mapping Objects**: Centralized configuration for all team assignments
+- **Fallback Strategy Configuration**: Customizable attribute priorities by data type
+- **Pattern-Based Matching**: Regex support for complex organizational structures
+- **Regional API Support**: Dynamic US/EU endpoint selection
 
-### 4. Improved Error Handling
-- Comprehensive error handling and logging
-- Graceful degradation when data unavailable
-- Better rate limiting between account processing
+### 4. Development & Debugging Features
+- **Environment Detection**: Automatic detection of local vs. Synthetics environment
+- **Enhanced Debugging**: NRQL result structure analysis and metric extraction logging
+- **Property Detection**: Comprehensive search for bytecountestimate values across different property names
+- **Team Assignment Visibility**: Detailed logging for troubleshooting team mapping
 
-### 5. Flexible Configuration
-- Easy customer-specific customization
-- Configurable exclusions and metric names
-- Pattern-based cost center mapping
+### 5. Customer Requirements Integration
+- **Configurable Primary Facet**: Default `costcenter`, easily changed to `tags.Team` or any attribute
+- **Generic Team Names**: Uses `mobile-team`, `platform-team` by default, customizable to any names
+- **Lambda Team Mapping**: Function name patterns for team identification
+- **Reusable Framework**: Same codebase works for any organization with configuration changes
 
 ## Usage
 
@@ -77,7 +124,7 @@ This repository provides generic examples that can be customized:
 - **Example B**: Custom cost center attributes  
 - **Example C**: Standard allocation attributes
 
-For customer-specific implementations, see `PRIVATE-CONFIG.md` for secure configuration management approaches.
+For detailed configuration options and examples, see `CONFIGURATION.md`.
 
 ## Local Development and Testing
 
@@ -234,10 +281,3 @@ Located in `dashboards/terraform/`, this provides an Observability as Code appro
 2. Copy `runtf.sh.sample` to `runtf.sh` and configure your settings
 3. Run `terraform init && terraform plan && terraform apply`
 4. Dashboard will be created automatically in your New Relic account
-
-## Next Steps
-
-1. Test the consolidated script in your Synthetics environment
-2. Configure customer-specific patterns as needed
-3. Update existing dashboard queries to match new metric names
-4. Set up automated dashboard deployment using Terraform templates

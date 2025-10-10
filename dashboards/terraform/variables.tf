@@ -22,13 +22,13 @@ variable "cost_facet" {
 }
 
 variable "config" {
-  description = "Configuration for dashboard widgets"
+  description = "Configuration for dashboard widgets - accounts and data types to analyze"
   type = list(object({
     facet = list(string)
   }))
   default = [
     {
-      facet = ["Log", "SystemSample", "Transaction"]
+      facet = ["Log", "Transaction", "SystemSample", "MobileSession", "PageView"]
     }
   ]
 }
