@@ -51,25 +51,6 @@ With this tool:
 - **Comprehensive logging** - Detailed debugging and monitoring capabilities
 - **Proven at scale** - Handles enterprise-level data volumes
 
-### 🔧 **Advanced Configuration**
-```javascript
-// Data type to team mapping
-const DATA_TYPE_TEAM_MAPPING = {
-  'MobileSession': 'mobile-team',
-  'MobileCrash': 'mobile-team',
-  'SystemSample': 'platform-team',
-  'Transaction': 'platform-team',
-  // ... configurable for any organization
-};
-
-// Lambda function name patterns
-const LAMBDA_TEAM_MAPPING = {
-  'team-alpha-*': 'team-alpha',
-  'analytics-*': 'data-team',
-  '*-mobile-*': 'mobile-team'
-};
-```
-
 ## Repository Structure
 
 - `cost-distribution-synthetics-api-script.js` - Main script for New Relic Synthetics
