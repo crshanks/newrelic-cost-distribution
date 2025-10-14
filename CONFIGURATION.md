@@ -2,6 +2,16 @@
 
 This document explains how to configure the enhanced cost distribution script for your organization's team allocation requirements.
 
+## Important: Tagging Strategy First
+
+The accuracy and effectiveness of the cost distribution tool depends entirely on having consistent tags and attributes across your New Relic data. Before configuring the script, ensure you have implemented a robust tagging strategy.
+
+📚 **See [TAGGING-GUIDE.md](TAGGING-GUIDE.md)** for comprehensive guidance on:
+- Adding cost allocation tags (`costCenter`, `team`, `product`, `environment`) to all data types
+- Configuring APM agents, infrastructure agents, and Kubernetes labels
+- Browser monitoring custom attributes and alternative fallback strategies
+- Implementation examples for each New Relic data source
+
 ## Quick Start
 
 The script uses generic defaults that can be customized for your organization:
@@ -72,6 +82,8 @@ const FALLBACK_STRATEGIES = {
   'default': ['entity.name', 'appName', 'host']
 };
 ```
+
+> **💡 Note**: Fallback strategies are useful for transitioning to a complete tagging strategy, but the most accurate cost allocation comes from implementing consistent tags across all data sources. See [TAGGING-GUIDE.md](TAGGING-GUIDE.md) for implementation guidance.
 
 ## Common Customizations
 
@@ -220,7 +232,9 @@ Debug messages will show:
 
 ## Support
 
-For questions about configuration or customization, refer to the main README.md or contact your New Relic implementation team.
+For questions about configuration or customization, refer to the main [README.md](README.md) or contact your New Relic implementation team.
+
+For guidance on implementing the tagging strategy required for effective cost distribution, see [TAGGING-GUIDE.md](TAGGING-GUIDE.md).
 
 ---
 
