@@ -21,6 +21,12 @@ variable "cost_facet" {
   default     = "costcenter"
 }
 
+variable "dashboard_name" {
+  description = "The name for the cost distribution dashboard"
+  type        = string
+  default     = "newrelic-cost-distribution"
+}
+
 variable "config" {
   description = "Configuration for dashboard widgets - accounts and data types to analyze"
   type = list(object({

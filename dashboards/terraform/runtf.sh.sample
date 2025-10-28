@@ -6,5 +6,6 @@ export NEW_RELIC_ACCOUNT_ID="0" # Your account ID
 export NEW_RELIC_API_KEY="NRAK-xxx" # A User API Key
 export METRIC_NAME="ingest.costcenter" # The metric name for your cost distribution data
 export COST_FACET="costcenter"
+export DASHBOARD_NAME="newrelic-cost-distribution" # The name for your dashboard
 
-bash -c "terraform $1 $2 -var=\"accountId=${NEW_RELIC_ACCOUNT_ID}\" -var=\"NEW_RELIC_API_KEY=${NEW_RELIC_API_KEY}\" -var=\"metric_name=${METRIC_NAME}\" -var=\"cost_facet=${COST_FACET}\""
+bash -c "terraform $1 $2 -var=\"accountId=${NEW_RELIC_ACCOUNT_ID}\" -var=\"NEW_RELIC_API_KEY=${NEW_RELIC_API_KEY}\" -var=\"metric_name=${METRIC_NAME}\" -var=\"cost_facet=${COST_FACET}\" -var=\"dashboard_name=${DASHBOARD_NAME}\""

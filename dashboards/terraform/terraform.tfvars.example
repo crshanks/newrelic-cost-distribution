@@ -24,3 +24,12 @@ metric_name = "ingest"
 # - "Cost Center" (custom attribute)
 # - "service.namespace" (service-based)
 cost_facet = "costcenter"
+
+# The name for the cost distribution dashboard
+# Customize this to match your organization's naming conventions
+# Examples:
+# - "Cost Distribution Dashboard"
+# - "New Relic Cost Allocation"
+# - "Ingest Chargeback Dashboard"
+# - "Team Cost Distribution"
+dashboard_name = "newrelic-cost-distribution"
