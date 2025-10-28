@@ -70,58 +70,58 @@ var LAMBDA_INFERENCE_LOGGING = false; // Enable detailed logging for lambda team
 
 // Data Type to Team Mapping - for hardcoded team assignments
 const DATA_TYPE_TEAM_MAPPING = {
-  // Mobile data types → mobile-team
-  'Mobile': 'mobile-team',
-  'MobileApplicationExit': 'mobile-team',
-  'MobileBreadcrumb': 'mobile-team',
-  'MobileCrash': 'mobile-team',
-  'MobileHandledException': 'mobile-team',
-  'MobilePerformance': 'mobile-team',
-  'MobileRequest': 'mobile-team',
-  'MobileRequestError': 'mobile-team',
-  'MobileSession': 'mobile-team',
-  'MobileUserAction': 'mobile-team',
+  // Mobile data types → mobile-team examples
+  // 'Mobile': 'mobile-team',
+  // 'MobileApplicationExit': 'mobile-team',
+  // 'MobileBreadcrumb': 'mobile-team',
+  // 'MobileCrash': 'mobile-team',
+  // 'MobileHandledException': 'mobile-team',
+  // 'MobilePerformance': 'mobile-team',
+  // 'MobileRequest': 'mobile-team',
+  // 'MobileRequestError': 'mobile-team',
+  // 'MobileSession': 'mobile-team',
+  // 'MobileUserAction': 'mobile-team',
   
-  // Infrastructure, APM, Browser data types → platform-team
-  'ContainerSample': 'platform-team',
-  'InfrastructureEvent': 'platform-team',
-  'NetworkSample': 'platform-team',
-  'ProcessSample': 'platform-team',
-  'StorageSample': 'platform-team',
-  'SystemSample': 'platform-team',
-  'Transaction': 'platform-team',
-  'TransactionError': 'platform-team',
-  'TransactionTrace': 'platform-team',
-  'AjaxRequest': 'platform-team',
-  'BrowserInteraction': 'platform-team',
-  'BrowserPerformance': 'platform-team',
-  'BrowserTiming': 'platform-team',
-  'JavaScriptError': 'platform-team',
-  'PageAction': 'platform-team',
-  'PageView': 'platform-team',
-  'PageViewTiming': 'platform-team',
+  // Infrastructure, APM, Browser data types → platform-team examples
+  // 'ContainerSample': 'platform-team',
+  // 'InfrastructureEvent': 'platform-team',
+  // 'NetworkSample': 'platform-team',
+  // 'ProcessSample': 'platform-team',
+  // 'StorageSample': 'platform-team',
+  // 'SystemSample': 'platform-team',
+  // 'Transaction': 'platform-team',
+  // 'TransactionError': 'platform-team',
+  // 'TransactionTrace': 'platform-team',
+  // 'AjaxRequest': 'platform-team',
+  // 'BrowserInteraction': 'platform-team',
+  // 'BrowserPerformance': 'platform-team',
+  // 'BrowserTiming': 'platform-team',
+  // 'JavaScriptError': 'platform-team',
+  // 'PageAction': 'platform-team',
+  // 'PageView': 'platform-team',
+  // 'PageViewTiming': 'platform-team',
 };
 
 // Lambda Function Name to Team Mapping - for AWS/Lambda function patterns
 const LAMBDA_TEAM_MAPPING = {
-  // Generic team prefix patterns
-  'team-alpha-*': 'team-alpha',
-  'team-beta-*': 'team-beta',
+  // Generic team prefix patterns examples
+  // 'team-alpha-*': 'team-alpha',
+  // 'team-beta-*': 'team-beta',
   
   // Common functional patterns
-  'mobile-*': 'mobile-team',
-  '*-mobile': 'mobile-team',
-  '*-mobile-*': 'mobile-team',
+  // 'mobile-*': 'mobile-team',
+  // '*-mobile': 'mobile-team',
+  // '*-mobile-*': 'mobile-team',
   
   // Generic service patterns
-  'analytics-*': 'data-team',
-  '*-analytics': 'data-team',
-  'platform-*': 'platform-team',
-  '*-platform': 'platform-team',
+  // 'analytics-*': 'data-team',
+  // '*-analytics': 'data-team',
+  // 'platform-*': 'platform-team',
+  // '*-platform': 'platform-team',
   
   // API and service patterns
-  '*api*': 'platform-team',
-  '*service*': 'platform-team',
+  // '*api*': 'platform-team',
+  // '*service*': 'platform-team',
   
   // Add your organization's lambda naming patterns here
   // Examples:
@@ -145,9 +145,9 @@ const CUSTOM_EVENT_TEAM_MAPPING = {
 // Fallback Strategy Configuration - what to try when primary facet is missing
 const FALLBACK_STRATEGIES = {
   // For custom events without tags, try these attributes in order
-  'custom_events': ['entity.name', 'appName', 'lambda_function_name', 'functionName'],
+  // 'custom_events': ['entity.name', 'appName', 'lambda_function_name', 'functionName'],
   // For mobile data, try these attributes
-  'mobile_data': ['appName', 'appName', 'entity.name'],
+  // 'mobile_data': ['appName', 'appName', 'entity.name'],
   // Default fallback chain for other data types
   'default': ['entity.name', 'appName', 'host', 'hostname']
 };
@@ -419,20 +419,20 @@ function getLambdaTeamFromName(functionName) {
  */
 function getFallbackStrategy(dataType) {
   // Check if it's a mobile data type
-  if (DATA_TYPE_TEAM_MAPPING[dataType] === 'mobile-team') {
-    return FALLBACK_STRATEGIES.mobile_data || FALLBACK_STRATEGIES.default;
-  }
+  // if (DATA_TYPE_TEAM_MAPPING[dataType] === 'mobile-team') {
+  //   return FALLBACK_STRATEGIES.mobile_data || FALLBACK_STRATEGIES.default;
+  // }
   
   // Check if it's a custom event (not in standard New Relic data types)
-  const standardDataTypes = [
-    'Transaction', 'TransactionError', 'PageView', 'PageAction', 'JavaScriptError',
-    'SystemSample', 'ProcessSample', 'StorageSample', 'NetworkSample',
-    'MobileSession', 'MobileCrash', 'MobileRequest', 'Metric'
-  ];
+  // const standardDataTypes = [
+  //   'Transaction', 'TransactionError', 'PageView', 'PageAction', 'JavaScriptError',
+  //   'SystemSample', 'ProcessSample', 'StorageSample', 'NetworkSample',
+  //   'MobileSession', 'MobileCrash', 'MobileRequest', 'Metric'
+  // ];
   
-  if (!standardDataTypes.includes(dataType)) {
-    return FALLBACK_STRATEGIES.custom_events || FALLBACK_STRATEGIES.default;
-  }
+  // if (!standardDataTypes.includes(dataType)) {
+  //   return FALLBACK_STRATEGIES.custom_events || FALLBACK_STRATEGIES.default;
+  // }
   
   return FALLBACK_STRATEGIES.default;
 }

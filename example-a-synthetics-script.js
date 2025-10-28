@@ -32,40 +32,22 @@ var METRIC_NAME = 'ingest.org_a';
 var TIME_RANGE = '30 minutes';
 var USE_FALLBACK_FACETS = true; // Enable fallback facets for this example
 
-// Enhanced team mapping for geographic regions
+// Data type to team mapping (default: empty, customize as needed)
 const DATA_TYPE_TEAM_MAPPING = {
-  // Mobile data types → mobile-team
-  'MobileSession': 'mobile-team',
-  'MobileCrash': 'mobile-team', 
-  'MobileRequest': 'mobile-team',
-  'MobileRequestError': 'mobile-team',
-  'MobileHandledException': 'mobile-team',
-  'Mobile': 'mobile-team',
-  
-  // Infrastructure, APM, Browser data types → platform-team
-  'SystemSample': 'platform-team',
-  'ProcessSample': 'platform-team',
-  'StorageSample': 'platform-team',
-  'NetworkSample': 'platform-team',
-  'ContainerSample': 'platform-team',
-  'InfrastructureEvent': 'platform-team',
-  'Transaction': 'platform-team',
-  'TransactionError': 'platform-team',
-  'TransactionTrace': 'platform-team',
-  'PageView': 'platform-team',
-  'PageAction': 'platform-team',
-  'JavaScriptError': 'platform-team',
-  'BrowserInteraction': 'platform-team',
-  'PageViewTiming': 'platform-team',
-  'BrowserTiming': 'platform-team'
+  // Example:
+  // 'MobileSession': 'mobile-team',
+  // 'SystemSample': 'platform-team',
+  // 'Transaction': 'platform-team',
+  // 'PageView': 'frontend-team',
 };
 
-// Lambda function patterns for geographic example
+// Lambda function name to team mapping (default: empty, customize as needed)
 const LAMBDA_TEAM_MAPPING = {
-  'region1-*': 'region_a',
-  'region2-*': 'region_b',
-  '*-region1-*': 'region_a',
-  '*-region2-*': 'region_b'
+  // Example:
+  // 'region1-*': 'region_a',
+  // 'region2-*': 'region_b',
+  // '*-region1-*': 'region_a',
+  // '*-region2-*': 'region_b',
 };
 
 // Fallback strategies

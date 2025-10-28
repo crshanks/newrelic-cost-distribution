@@ -45,16 +45,12 @@ Automatically assigns specific data types to teams:
 
 ```javascript
 const DATA_TYPE_TEAM_MAPPING = {
-  // Mobile data → your mobile team name
-  'MobileSession': 'mobile-team',
-  'MobileCrash': 'mobile-team',
-  'MobileRequest': 'mobile-team',
-  
-  // Infrastructure/APM/Browser → your platform team name
-  'SystemSample': 'platform-team',  // Change to 'voltron' for specific customer
-  'Transaction': 'platform-team',   // Change to 'voltron' for specific customer
-  'PageView': 'platform-team',      // Change to 'voltron' for specific customer
-  // ... more types
+  // Example:
+  // 'MobileSession': 'mobile-team',
+  // 'MobileCrash': 'mobile-team',
+  // 'SystemSample': 'platform-team',
+  // 'Transaction': 'platform-team',
+  // 'PageView': 'platform-team',
 };
 ```
 
@@ -64,10 +60,11 @@ Maps AWS Lambda functions to teams based on naming conventions:
 
 ```javascript
 const LAMBDA_TEAM_MAPPING = {
-  'team-alpha-*': 'team-alpha',        // Functions starting with team-alpha-
-  'mobile-*': 'mobile-team',           // Functions starting with mobile-
-  '*-analytics': 'data-team',          // Functions ending with -analytics
-  '*-mobile-*': 'mobile-team',         // Functions containing -mobile-
+  // Example:
+  // 'team-alpha-*': 'team-alpha',
+  // 'mobile-*': 'mobile-team',
+  // '*-analytics': 'data-team',
+  // '*-mobile-*': 'mobile-team',
 };
 ```
 
