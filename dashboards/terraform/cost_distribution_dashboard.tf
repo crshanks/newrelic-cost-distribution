@@ -3,9 +3,10 @@
 
 resource "newrelic_one_dashboard_json" "cost_distribution_dashboard" {
   json = templatefile("${path.module}/templates/cost_distribution_dashboard.json.tftpl", {
-    ACCOUNTID   = var.accountId
-    METRIC_NAME = var.metric_name
-    COST_FACET  = var.cost_facet
+    ACCOUNTID      = var.accountId
+    METRIC_NAME    = var.metric_name
+    COST_FACET     = var.cost_facet
+    DASHBOARD_NAME = var.dashboard_name
   })
 }
 

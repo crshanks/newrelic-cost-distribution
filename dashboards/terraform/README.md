@@ -2,11 +2,13 @@
 
 This directory contains Terraform configuration files for creating New Relic dashboards programmatically.
 
+
 ## Files
 
 - `runtf.sh.sample` - Example bash script for running Terraform commands
 - `provider.tf` - Terraform provider configuration for New Relic
-- `dash_nrql_composed.tf` - Main dashboard configuration file
+- `dash_nrql_composed.tf` - Main dashboard configuration file (NRQL composed dashboard)
+- `cost_distribution_dashboard.tf` - Alternative dashboard configuration file (cost distribution dashboard)
 - `getIngestByDataType.gql` - GraphQL query template for ingest data
 - `terraform.tfvars.example` - Example variables configuration file
 - `templates/` - Directory containing Terraform template files
@@ -47,6 +49,7 @@ This directory contains Terraform configuration files for creating New Relic das
    NEW_RELIC_API_KEY = "your-api-key"
    metric_name = "ingest"  # Match your synthetics script configuration
    cost_facet = "costcenter"  # Match your synthetics script FACET variable
+   dashboard_name = "newrelic-cost-distribution"  # Customize your dashboard name
    ```
 
 ### Important: Synchronize with Your Script
