@@ -245,12 +245,13 @@ When implementing the newrelic-cost-distribution tool, Browser monitoring data t
 **Example Configuration:**
 ```javascript
 const DATA_TYPE_TEAM_MAPPINGS = {
-  'PageView': 'frontend-team',
-  'PageViewTiming': 'frontend-team', 
-  'PageAction': 'frontend-team',
-  'BrowserInteraction': 'frontend-team',
-  'BrowserTiming': 'frontend-team',
-  'JavaScriptError': 'frontend-team'
+  // Example:
+  // 'PageView': 'frontend-team',
+  // 'PageViewTiming': 'frontend-team',
+  // 'PageAction': 'frontend-team',
+  // 'BrowserInteraction': 'frontend-team',
+  // 'BrowserTiming': 'frontend-team',
+  // 'JavaScriptError': 'frontend-team'
 };
 ```
 

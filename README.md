@@ -96,10 +96,25 @@ var METRIC_NAME = 'ingest';
 
 // Data type to team mapping
 const DATA_TYPE_TEAM_MAPPING = {
-  'MobileSession': 'mobile-team',
-  'SystemSample': 'platform-team',
-  'Transaction': 'platform-team',
-  // ... customize for your teams
+  // Example:
+  // 'MobileSession': 'mobile-team',
+  // 'SystemSample': 'platform-team',
+  // 'Transaction': 'platform-team',
+};
+// Lambda function name to team mapping
+const LAMBDA_TEAM_MAPPING = {
+  // Example:
+  // 'team-alpha-*': 'team-alpha',
+  // 'analytics-*': 'data-team',
+  // '*-mobile-*': 'mobile-team',
+};
+
+// Custom event team mapping
+const CUSTOM_EVENT_TEAM_MAPPING = {
+  // Example:
+  // 'my-custom-event-alpha': 'team-alpha',
+  // 'order-processing-metrics': 'platform-team',
+  // 'mobile-analytics-events': 'mobile-team',
 };
 ```
 
