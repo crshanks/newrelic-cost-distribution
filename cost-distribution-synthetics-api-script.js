@@ -439,22 +439,25 @@ function getFallbackStrategy(dataType) {
 
 /**
  * Enhanced cost center determination with team mapping logic and lambda inference
+ * Respects USE_FALLBACK_FACETS configuration
  */
-function determineTeamWithMapping(result, facetString, entityNameString, appNameString, dataType, lambdaTeamMappings = null) {
+function determineTeamWithMapping(result, facetString, dataType, lambdaTeamMappings = null) {
   // First, check if this data type should be hardcoded to a specific team
   const dataTypeTeam = getDataTypeTeam(dataType);
   if (dataTypeTeam) {
     console.debug(`Data type ${dataType} assigned to team: ${dataTypeTeam}`);
     return dataTypeTeam;
   }
-  
+
   let team = null;
-  
+
   // Try primary facet first
   if (result.facet) {
     team = result.facet;
     console.debug(`Using primary facet for team: ${team}`);
-  } else {
+  }
+  // Only use fallback strategies if configured to do so
+  else if (USE_FALLBACK_FACETS) {
     // Check if this is a custom event and try lambda inference
     if (isCustomEventType(dataType)) {
       const customEventTeam = determineCustomEventTeam(dataType, lambdaTeamMappings);
@@ -463,25 +466,44 @@ function determineTeamWithMapping(result, facetString, entityNameString, appName
         return customEventTeam;
       }
     }
-    
+
     // If no primary facet, try fallback strategies
     const fallbackAttributes = getFallbackStrategy(dataType);
-    
+
     for (const attribute of fallbackAttributes) {
       let value = null;
-      
+
       // Try to get the attribute value from the result
-      if (attribute === 'entity.name' && entityNameString && result['entity.name']) {
-        value = result['entity.name'];
-      } else if (attribute === 'appName' && appNameString && result['appName']) {
-        value = result['appName'];
-      } else if (result[attribute]) {
-        value = result[attribute];
+      // Try multiple variations of the attribute name (case-insensitive matching)
+      const attributeVariations = [
+        attribute,                    // e.g., 'opslevel-dependency-of'
+        `tag_${attribute}`,           // e.g., 'tag_opslevel-dependency-of'
+        `tags.${attribute}`,          // e.g., 'tags.opslevel-dependency-of'
+        `tag.${attribute}`,           // e.g., 'tag.opslevel-dependency-of'
+        `label.${attribute}`          // e.g., 'label.opslevel-dependency-of'
+      ];
+
+      // Try each variation with case-insensitive matching
+      for (const attrName of attributeVariations) {
+        // First try exact match
+        if (result[attrName]) {
+          value = result[attrName];
+          break;
+        }
+        // Then try case-insensitive match by checking all result keys
+        const lowerAttrName = attrName.toLowerCase();
+        for (const resultKey of Object.keys(result)) {
+          if (resultKey.toLowerCase() === lowerAttrName) {
+            value = result[resultKey];
+            break;
+          }
+        }
+        if (value) break;
       }
-      
+
       if (value) {
         console.debug(`Using fallback attribute ${attribute}: ${value}`);
-        
+
         // Check if it's a lambda function name and try to map it
         if (attribute.includes('lambda') || attribute.includes('function')) {
           const lambdaTeam = getLambdaTeamFromName(value);
@@ -489,18 +511,20 @@ function determineTeamWithMapping(result, facetString, entityNameString, appName
             return lambdaTeam;
           }
         }
-        
+
         team = value;
         break;
       }
     }
+  } else {
+    console.debug(`USE_FALLBACK_FACETS is disabled for ${dataType}, no primary facet found - assigning to 'n/a'`);
   }
-  
+
   // Apply pattern matching if we have a value
   if (team) {
     team = applyCostCenterPatterns(team);
   }
-  
+
   return team || 'n/a';
 }
 
@@ -598,38 +622,6 @@ function isCustomEventType(eventType) {
   );
 }
 
-/**
- * Determine cost center from NRQL result, applying patterns and fallbacks
- */
-function determineCostCenter(result, facetString, entityNameString, appNameString) {
-  let costCenter = null;
-  
-  // Try primary facet first
-  if (result.facet) {
-    costCenter = result.facet;
-  }
-  // Only use fallbacks if configured to do so
-  else if (USE_FALLBACK_FACETS) {
-    // Try entity.name if available and no facet
-    if (entityNameString && result['entity.name']) {
-      costCenter = result['entity.name'];
-      console.debug(`Using entity.name fallback: ${costCenter}`);
-    }
-    // Try appName if available and no other options
-    else if (appNameString && result['appName']) {
-      costCenter = result['appName'];
-      console.debug(`Using appName fallback: ${costCenter}`);
-    }
-  }
-  
-  // Apply pattern matching if we have a value
-  if (costCenter) {
-    costCenter = applyCostCenterPatterns(costCenter);
-  }
-  
-  return costCenter || 'n/a';
-}
-
 // ============================================================================
 // NEW RELIC API FUNCTIONS
 // ============================================================================
@@ -724,31 +716,17 @@ async function getKeySet(eventType, acct) {
   }
 }
 
-function getIngest(facet, entityName, appName, dataType, acctid, acctname, lambdaTeamMappings = null) {
+function getIngest(facet, dataType, acctid, acctname, lambdaTeamMappings = null) {
   return new Promise(async (resolve, reject) => {
-    
+
     // Build metric exclusion clause for Metric event types. If it is a Metric then don't count the goldenMetrics
     let metricClause = dataType === 'Metric' ? ` where metricName != '${METRIC_NAME}' and newrelic.source != \`goldenMetrics\`` : '';
-    
-    // Build facet clause based on available attributes and fallback configuration
-    let facetClause;
-    if (facet != null) {
-      facetClause = ` facet \`${facet}\``;
-    } else if (USE_FALLBACK_FACETS && entityName != null) {
-      facetClause = ` facet entity.name`;
-    } else if (USE_FALLBACK_FACETS && appName != null) {
-      facetClause = ` facet appName`;
-    } else {
-      facetClause = '';
-    }
 
-    // Build enhanced NRQL query that includes potential team mapping attributes
+    // Build facet clause
+    let facetClause = facet ? ` facet \`${facet}\`` : '';
+
+    // Build NRQL query
     let baseQuery = `SELECT bytecountestimate()`;
-    
-    // Note: We don't add additional attributes to SELECT as they may not exist in all event types
-    // Instead, we rely on the keyset detection mechanism to determine available attributes
-    // and use them in the team mapping logic when processing results
-    
     let nrql = baseQuery + ` FROM ${dataType}` + metricClause + ` since ${TIME_RANGE} ago` + facetClause + ` LIMIT MAX`;
 
     let q = `{
@@ -860,7 +838,7 @@ function getIngest(facet, entityName, appName, dataType, acctid, acctname, lambd
               } else {
                 // Process faceted results
                 for (let z = 0; z < ingestResult.length; z++) {
-                  const costCenter = determineTeamWithMapping(ingestResult[z], facet, entityName, appName, dataType, lambdaTeamMappings);
+                  const costCenter = determineTeamWithMapping(ingestResult[z], facet, dataType, lambdaTeamMappings);
                   
                   // Enhanced: Try all possible property names and log what we find
                   const result = ingestResult[z];
@@ -1026,7 +1004,7 @@ async function processAccount(account) {
   // Process all ingest queries in parallel
   const ingestPromises = [];
   const escapedFacet = FACET.replace(/\s/g, '\\s');
-  const pattern = `^${escapedFacet}$|^tag_.${escapedFacet}$|^tags.${escapedFacet}$|^label.${escapedFacet}$`;
+  const pattern = `^${escapedFacet}$|^tag_${escapedFacet}$|^tags.${escapedFacet}$|^label.${escapedFacet}$`;
   const regexp = new RegExp(pattern, 'i');
   
   // Phase 1: Lambda team inference uses static configuration only (no dynamic collection needed)
@@ -1057,17 +1035,34 @@ async function processAccount(account) {
         console.log(`   Tag-related keys found: ${tagKeys.map(k => k.key).join(', ')}`);
       }
       
-      // Check for alternative facets if enabled
-      let entityNameExistsArray = ks.keySet.filter(r => r['key'] === 'entity.name');
-      let entityNameString = entityNameExistsArray.length > 0 ? entityNameExistsArray[0].key : null;
-      
-      let appNameExistsArray = ks.keySet.filter(r => r['key'] === 'appName');
-      let appNameString = appNameExistsArray.length > 0 ? appNameExistsArray[0].key : null;
-      
-      console.debug(`Data type: ${ks.eventType}, Facet: ${facetString}, Entity: ${entityNameString}, App: ${appNameString}`);
-      
+      // Check for alternative facets if USE_FALLBACK_FACETS is enabled
+      let fallbackFacetString = null;
+      if (USE_FALLBACK_FACETS && !facetString) {
+        // Try fallback attributes in order from FALLBACK_STRATEGIES
+        const fallbackAttrs = FALLBACK_STRATEGIES.default || [];
+
+        for (const attr of fallbackAttrs) {
+          // Try multiple variations of each attribute (case-insensitive)
+          const variations = [attr, `tag_${attr}`, `tags.${attr}`, `tag.${attr}`, `label.${attr}`];
+
+          for (const variation of variations) {
+            const foundAttr = ks.keySet.find(r => r['key']?.toLowerCase() === variation.toLowerCase());
+            if (foundAttr) {
+              fallbackFacetString = foundAttr.key;
+              console.debug(`Found fallback facet for ${ks.eventType}: ${fallbackFacetString}`);
+              break;
+            }
+          }
+          if (fallbackFacetString) break;
+        }
+      }
+
+      console.debug(`Data type: ${ks.eventType}, Primary Facet: ${facetString}, Fallback: ${fallbackFacetString}`);
+
       // Get the ingest data for the data type in the account with lambda team mappings
-      ingestPromises.push(getIngest(facetString, entityNameString, appNameString, ks.eventType, ks.id, ks.account, lambdaTeamMappings));
+      // Use fallback facet if primary doesn't exist
+      const effectiveFacet = facetString || fallbackFacetString;
+      ingestPromises.push(getIngest(effectiveFacet, ks.eventType, ks.id, ks.account, lambdaTeamMappings));
     }
   }
   
