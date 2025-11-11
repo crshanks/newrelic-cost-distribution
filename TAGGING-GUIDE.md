@@ -15,6 +15,21 @@ The newrelic-cost-distribution tool works by using the `bytecountestimate()` fun
 
 > **Key to Success**: Consistency is critical. Choose a naming convention for your tags (e.g., camelCase or snake_case) and use it uniformly across all your New Relic data sources.
 
+## A Note on Entity Tagging vs. Ingest Tagging
+
+This guide's primary focus is on **Ingest Tagging**. This means adding attributes directly to your raw telemetry data (Logs, Metrics, Traces, ProcessSample, etc.) *before* or *as* it is sent to New Relic (e.g., in an agent config, log forwarder config, or via API). This is the most comprehensive method for cost allocation because the `newrelic-cost-distribution` tool queries *all* data types to estimate cost.
+
+However, **Entity Tagging** (adding tags to an entity via the UI or NerdGraph API) is also a valid part of a cost strategy due to a feature called **Tag Propagation**.
+Tag Propagation means that for *some* entity types, New Relic automatically propagates entity tags to their underlying event data. Here's what is confirmed to work:
+
+- **For APM Applications:** Tags added to an APM application entity (via UI or API) **are automatically added** as attributes to all Transaction, TransactionError, Span events, and APM timeslice metric data.
+- **For Infrastructure Hosts:** Tags added to a Host entity (either via newrelic-infra.yml or the UI/API) **are automatically added** as attributes to infrastructure data like SystemSample and ProcessSample.
+  - **Note:** To query tags added via the UI, you must prefix the tag name with `tags.` (e.g., `tags.yourTagKey`).
+
+**Conclusion, use a Hybrid Approach:**
+- **Use Entity Tagging** as a valid and easy way to tag your APM, APM Metric, and Infrastructure data.
+- For other data types, such as Log events, custom Metric data (including Prometheus), and Custom Events, **you must use Ingest Tagging** (as described in this guide) to ensure attributes are present for cost allocation.
+
 ## Alternative Strategies When Tagging Isn't Possible
 
 We recognize that implementing a comprehensive, consistent tagging strategy across a large organization can be a significant undertaking. If you are unable to add the recommended tags (`costCenter`, `team`, etc.) immediately, you can still get value from the `newrelic-cost-distribution` tool by configuring it to use other existing attributes.
@@ -50,9 +65,13 @@ Using default attributes is a pragmatic first step. It allows you to start the c
 
 ## APM (Application Performance Monitoring)
 
-For APM data, the preferred method for adding attributes is through agent configuration. This approach ensures that tags are applied consistently to all transactions without requiring code changes. Custom instrumentation should be reserved as a fallback for capturing dynamic attributes that cannot be defined statically in configuration.
+For APM data, the preferred method for adding attributes is through agent configuration or entity tagging.
 
-### Adding Attributes with Configuration (Preferred Method)
+- **Method 1 (Entity Tagging):** As mentioned in the section above, you can add tags directly to the APM Application entity in the New Relic UI. These tags will automatically propagate to all Transaction, TransactionError, and Span events, as well as APM timeslice metrics (as dimensional metrics). This is often the simplest method.
+- **Method 2 (Agent Configuration):** This approach ensures that tags are applied consistently to all transactions directly from the agent config file (e.g., `newrelic.yml`, `newrelic.config`, `newrelic.js`). This is ideal for static attributes you want present on all transactions.
+- **Method 3 (Custom Instrumentation):** This should be reserved as a fallback for capturing dynamic attributes (like a userID or cartValue) that cannot be defined statically.
+
+### Adding Attributes with Configuration (Method 2)
 
 Most APM agents allow you to enable or include custom attributes directly in the agent configuration file (e.g., `newrelic.yml`, `newrelic.config`, `newrelic.js`). This method is ideal for adding static attributes that you want to be present on all transactions.
 
@@ -78,7 +97,7 @@ OTEL_RESOURCE_ATTRIBUTES="costCenter=A-123,team=backend-services"
 
 📚 For more details, see the [official OpenTelemetry documentation on Resource Attributes](https://opentelemetry.io/docs/concepts/resources/).
 
-### Adding Attributes with Custom Instrumentation
+### Adding Attributes with Custom Instrumentation (Method 3)
 
 For dynamic attributes that change within the context of a specific transaction, you can use the New Relic agent APIs. This allows you to capture business-critical information or operational details as they happen.
 
@@ -116,7 +135,7 @@ txn.AddAttribute("product_line", "electronics")
 
 📚 For more details, see the [New Relic documentation on collecting custom attributes](https://docs.newrelic.com/docs/data-apis/custom-data/custom-events/collect-custom-attributes/).
 
-**Cost Impact**: Attributes added to APM transactions are attached to `Transaction` and `TransactionError` events. This allows you to group APM usage data by these attributes, directly attributing the cost of monitoring a specific application or service to a team or cost center.
+**Cost Impact**: Attributes added to APM transactions are attached to `Transaction`, `TransactionError`, and `Span` events. This allows you to group APM usage data by these attributes, directly attributing the cost of monitoring a specific application or service to a team or cost center.
 
 ## Logs
 
@@ -132,7 +151,7 @@ For unstructured logs, you can use New Relic's log parsing capabilities to extra
 
 📚 For more information, refer to the [documentation on log parsing](https://docs.newrelic.com/docs/logs/log-management/ui-data/parsing/).
 
-**Cost Impact**: Adding attributes like `costCenter` or `team` to your logs allows you to precisely track and allocate the cost of log ingestion and retention for different parts of your application or business.
+**Cost Impact**: Adding attributes like `costCenter` or `team` to your logs allows you to precisely track and allocate the cost of log ingestion and retention. **Ingest-time tagging is the required method** for attributing log costs, as entity tag propagation does not apply to Log events.
 
 ## Metrics (Prometheus, Telemetry SDK, etc.)
 
@@ -142,7 +161,7 @@ Dimensional metrics can be a major contributor to your overall data ingest, espe
 
 - **Prometheus OpenMetrics Integration**: When you forward metrics from your Prometheus servers, the labels on those metrics are converted into attributes in New Relic.
 - **New Relic Telemetry SDKs**: When you send custom metrics using the Telemetry SDKs, you can attach any custom attributes you need.
-- **APM Agent Metric Timeslices**: While not typically customized with cost tags, it's important to know that APM agents also generate metric data. The cost for these is usually attributed via the `appName` on the APM application.
+- **APM Agent Metric Timeslices**: APM agents generate metric timeslice data (like apm.service.transaction.duration). As demonstrated by entity tag propagation, tags (like `tags.Environment`) **are propagated** to this Metric data. This makes entity tagging an effective way to attribute the cost of this specific metric data.
 
 ### How to Add Attributes:
 
@@ -153,15 +172,18 @@ The key to tagging metrics is to ensure the source system includes the necessary
 
 📚 For more details, see the documentation on the [Prometheus OpenMetrics integration](https://docs.newrelic.com/docs/infrastructure/prometheus-integrations/get-started/send-prometheus-metric-data-new-relic/) and the [Metric API](https://docs.newrelic.com/docs/data-apis/ingest-apis/metric-api/introduction-metric-api/).
 
-**Cost Impact**: Without the correct dimensional attributes, all your Prometheus or custom metric data could be lumped into a single "untagged" category by the cost distribution tool. Tagging this data is essential for accurately attributing the significant costs that can come from metric monitoring.
+**Cost Impact**: Without the correct dimensional attributes, all your Prometheus or custom metric data could be lumped into a single "untagged" category by the cost distribution tool. Tag propagation from entities **does** apply to APM metric timeslice data. For other major metric sources, such as Prometheus or the Telemetry SDKs, **you must use ingest-time labeling** (as described above) to ensure cost attributes are present.
 
 ## Infrastructure Monitoring
 
-### Adding Custom Attributes and Labels
+You can add attributes to your infrastructure data using two methods: entity tags or configuration.
 
-You can add custom attributes and labels to your infrastructure agent by editing the `newrelic-infra.yml` configuration file. This is useful for tagging hosts with information like their role, environment, or the team that owns them.
+- **Method 1 (Entity Tagging):** As mentioned in the "A Note on Entity Tagging" section, you can add tags directly to the Host entity in the New Relic UI. These tags will automatically propagate to SystemSample and ProcessSample events. Remember to query UI-added tags using the `tags.` prefix (e.g., `tags.costCenter`).
+- **Method 2 (Agent Configuration):** You can add custom attributes directly to your `newrelic-infra.yml` configuration file. This is useful for tagging hosts with information like their role, environment, or team. Attributes added this way do *not* require the `tags.` prefix.
 
-Here is an example of how to add custom attributes in your `newrelic-infra.yml` file:
+### Adding Custom Attributes via Configuration (Method 2)
+
+**Example of newrelic-infra.yml (Method 2):**
 
 ```yaml
 custom_attributes:
@@ -170,7 +192,7 @@ custom_attributes:
   costCenter: A-123
 ```
 
-📚 For more details, see the [documentation on Infrastructure agent configuration](https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/configuration/infrastructure-agent-configuration-settings/).
+📚 For more details, see the [documentation on Infrastructure agent configuration](https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/configuration/infrastructure-agent-configuration-settings/) and [tag propagation](https://docs.newrelic.com/docs/new-relic-solutions/new-relic-one/core-concepts/use-tags-help-organize-find-your-data/#query-tags).
 
 **Cost Impact**: Tagging your hosts allows the cost distribution tool to allocate the expense of the infrastructure agent and associated host monitoring to the correct team or product.
 
@@ -282,4 +304,4 @@ newrelic.recordCustomEvent('ProductPurchase', {
 
 📚 For more information, see the [documentation on reporting custom event data](https://docs.newrelic.com/docs/data-apis/custom-data/custom-events/report-custom-event-data/).
 
-**Cost Impact**: If you ingest a high volume of custom events, adding cost-related attributes is essential for accurately billing that usage back to the appropriate teams or products.
+**Cost Impact**: **Ingest-time tagging is the required method** for attributing custom event costs, as entity tag propagation does not apply to Custom Events.
