@@ -61,6 +61,8 @@ With this tool:
 
 ## Quick Start
 
+⚠️ Caution: This approach involves the use of a Synthetics script to make a large number of NerdGraph API calls. It is suitable for customers on the New Relic original pricing model (Data + Users [\+aCCU]), consuming 48 checks a day. It may be unsuitable for customers on the primary usage based pricing (Data + CoreCCU [\+aCCU]); check the NerdGraph API CoreCCU consumption to see the impact for your organization.
+
 ### Prerequisites: Data Tagging Strategy
 
 Before using the cost distribution tool, you'll need to implement a consistent tagging strategy across your New Relic data sources. The effectiveness of cost allocation depends directly on how well your data is tagged.
